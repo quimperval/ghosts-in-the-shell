@@ -8,11 +8,16 @@
 #include<thread>
 #include<condition_variable>
 
+//dependencies of this project
+#include "cell.h"
+
 std::atomic<bool> running(true);
 std::queue<int> eventQueue;
 std::condition_variable queueCondition;
-std::mutex queueMutex
-;
+std::mutex queueMutex;
+float score=0;
+int rows=-1;
+int cols=-1;
 void keyboardEventListener(){
     while(running)
     {
@@ -32,6 +37,9 @@ void keyboardEventListener(){
 
 void renderer() {
     while (running) {
+	std::string strScore = "Score: ";
+        strScore += std::to_string(score);
+	mvprintw(5,5,"%s", strScore.data());
         std::unique_lock<std::mutex>lock(queueMutex);
         queueCondition.wait(lock, [] { return !eventQueue.empty() || !running; });
 
@@ -54,10 +62,14 @@ void renderer() {
 }
 
 int main(){
+    Cell c;
     initscr();
     noecho();
     cbreak();
     nodelay(stdscr, TRUE);
+    getmaxyx(stdscr,rows,cols);
+    std::cout << "cols:" << cols << std::endl;
+    std::cout << "rows: " << rows << std::endl;
     std::thread inputThread(keyboardEventListener);
     std::thread rendererThread(renderer);
 
