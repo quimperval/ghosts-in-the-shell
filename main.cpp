@@ -10,6 +10,7 @@
 #include<vector>
 //dependencies of this project
 #include "cell.h"
+#include "ghost.h"
 
 std::atomic<bool> running(true);
 std::queue<int> eventQueue;
@@ -19,7 +20,7 @@ float score=0;
 int rows=-1;
 int cols=-1;
 std::vector<std::vector<Cell>> cells;
-
+Ghost mg; //mg for.Main Ghost
 std::vector<std::vector<char>> pattern = {
         {'#', 's', 's', 's', '#', '#', '#', '#', 's', '#'},
         {'s', 's', '#', 's', 's', 's', 's', 's', 's', '#'},
@@ -94,6 +95,46 @@ void renderer() {
     }
 }
 
+void initializeMainGhost()
+{
+    //start on the middle vector, and get the middle cell.
+    bool validPosition = false;
+    int middleRow = cells.size()/2;
+    int middleCol = cells[middleRow].size()/2;
+
+    bool searchLeft = false;
+    bool searchRight = false;
+    bool searchBottom = false;
+    bool searchTop = false;
+
+    int topX = -1;
+    int topY = -1;
+    int minX = -1;
+    int minY = -1;
+
+    Cell mCell = cells[middleRow][middleCol];
+    
+    while(mCell.getValue()!='*')
+    {
+        if(searchLeft ==false && searchRight==false &&
+			searchBottom ==false &&
+			searchTop == false)
+	{
+            searchLeft = true; 
+	    topX = middleCol+1;
+	    minX = middleCol+1;
+
+	    topY = middleRow;
+	    minY = middleRow;
+
+	    mCell = cells[topY][topX];
+	}
+
+
+
+    }
+}
+
 int main(){
     Cell c;
     initscr();
@@ -141,3 +182,4 @@ int main(){
     endwin();
     return 0;
 }
+
