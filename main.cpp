@@ -8,6 +8,7 @@
 #include<thread>
 #include<condition_variable>
 #include<vector>
+#include<utility>
 //dependencies of this project
 #include "cell.h"
 #include "ghost.h"
@@ -92,6 +93,8 @@ void renderer() {
 		}
 		mvprintw(i+1,0, "%s", line.data());
 	    }
+	    //render the main ghost
+	    mvprintw(mg.getYPos(), mg.getXPos(),"@");
     }
 }
 
@@ -101,38 +104,70 @@ void initializeMainGhost()
     bool validPosition = false;
     int middleRow = cells.size()/2;
     int middleCol = cells[middleRow].size()/2;
+    int rows = cells.size();
+    int cols = cells[middleRow].size();
+    if(middleRow%2 == 0)
+    {
+        middleRow--;
+    }
+
+    if(middleCol%2 == 0)
+    {
+        middleCol--;
+    }
 
     bool searchLeft = false;
     bool searchRight = false;
     bool searchBottom = false;
     bool searchTop = false;
 
-    int topX = -1;
-    int topY = -1;
-    int minX = -1;
-    int minY = -1;
-
+    std::vector<std::vector<bool>> visited(rows, std::vector<bool>(cols, false));
     Cell mCell = cells[middleRow][middleCol];
+    std::vector<std::pair<int, int>> directions{{0,1}, {1,0},{0,-1},{-1,0}};
+
+    int totalElements = rows*cols;
     
-    while(mCell.getValue()!='*')
+    int row = middleRow;
+    int col = middleCol;
+
+    int currentDirection =0;
+    int layer =0;
+    	
+    while(mCell.getValue()!='*' && totalElements> 0)
     {
-        if(searchLeft ==false && searchRight==false &&
-			searchBottom ==false &&
-			searchTop == false)
+        if(row>=0 && row < rows && col>=0 && col< cols && !visited[row][col])
 	{
-            searchLeft = true; 
-	    topX = middleCol+1;
-	    minX = middleCol+1;
-
-	    topY = middleRow;
-	    minY = middleRow;
-
-	    mCell = cells[topY][topX];
+            visited[row][col] = true;
+	    totalElements--;
 	}
+        int nextRow = row+directions[currentDirection].first;
+	int nextCol = row+directions[currentDirection].second;
 
+	//check if the next position is valid and whithin
+	//the current spiral layer
+	if(nextRow >= middleRow - layer && nextRow <= middleRow+layer && 
+	    nextCol >= middleCol -layer && nextCol <= middleCol +layer && nextRow >= 0 && 
+	    nextRow < rows && nextCol >=0 && nextCol < cols && 
+	    !visited[nextRow][nextCol])
+	{
+            row= nextRow;
+	    col= nextCol;
+	} else
+	{
+            currentDirection = (currentDirection +1)% 4;
+	    if(currentDirection==0)
+	    {
+                layer++;
+	    }
 
-
+	}
+	
+        mCell = cells[row][col];
+	
+	
     }
+    mg.setXPos(col);
+    mg.setYPos(row);
 }
 
 int main(){
@@ -174,6 +209,9 @@ int main(){
 	cells.push_back(v);
 
     }
+
+    initializeMainGhost();
+    std::cout << "mg.x: " << mg.getXPos() << "; mg.y: " << mg.getYPos();
     std::thread inputThread(keyboardEventListener);
     std::thread rendererThread(renderer);
 
