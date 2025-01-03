@@ -46,11 +46,25 @@ void keyboardEventListener(){
 	    queueCondition.notify_one();
 	    if (ch == 'q') {
                 running = false; // Signal to stop the program
-            }
+            } else if(ch == KEY_UP)
+	    { 
+		int nextYVal = mg.getYPos()-1;
+                if(nextYVal >=0)
+		{
+                    mg.setYPos(nextYVal);
+
+		}
+	    }
+
 	}
     }
 }
 
+
+void printMGPos()
+{
+    std::cout << "mg.x: " << mg.getXPos() << "; mg.y: " << mg.getYPos() << std::endl; 
+}
 
 void renderer() {
     while (running) {
@@ -94,9 +108,11 @@ void renderer() {
 		mvprintw(i+1,0, "%s", line.data());
 	    }
 	    //render the main ghost
+            printMGPos();	    
 	    mvprintw(mg.getYPos(), mg.getXPos(),"@");
     }
 }
+
 
 void initializeMainGhost()
 {
@@ -211,7 +227,7 @@ int main(){
     }
 
     initializeMainGhost();
-    std::cout << "mg.x: " << mg.getXPos() << "; mg.y: " << mg.getYPos();
+    printMGPos();
     std::thread inputThread(keyboardEventListener);
     std::thread rendererThread(renderer);
 
